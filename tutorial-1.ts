@@ -201,16 +201,17 @@ console.log("Pimlico paymasterAndData:", paymasterAndData);
 // SIGN THE USER OPERATION
 const chainId = 80001;
 
-const finalUseropHash = hexConcat([
-  utils.solidityPack(
-    ["bytes", "address", "uint256"],
-    [
-      utils.arrayify(await entryPoint.getUserOpHash(userOperation)),
-      ENTRY_POINT_ADDRESS,
-      chainId,
-    ]
-  ),
-]);
+// const finalUseropHash = hexConcat([
+//   utils.solidityPack(
+//     ["bytes", "address", "uint256"],
+//     [
+//       utils.arrayify(await entryPoint.getUserOpHash(userOperation)),
+//       ENTRY_POINT_ADDRESS,
+//       chainId,
+//     ]
+//   ),
+// ]);
+const finalUseropHash = await entryPoint.getUserOpHash(userOperation);
 console.log("finalUseropHash", finalUseropHash);
 
 // const signature = await owner.signMessage(
