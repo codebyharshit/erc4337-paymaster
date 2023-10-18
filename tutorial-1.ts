@@ -31,8 +31,10 @@ const lineaProvider = new StaticJsonRpcProvider(
 // ).connect(lineaProvider);
 // console.log("Owner", owner);
 
-// const owner = new Wallet(privateKey);
-const owner = Wallet.createRandom();
+const privateKey =
+  "2d1f1100effef7adcf2d875fd74e074bfae098cfb45bcf58a5453b78d206afaf";
+const owner = new Wallet(privateKey);
+// const owner = Wallet.createRandom();
 console.log("Generated wallet with private key:", owner.privateKey);
 
 const MOCK_VALID_UNTIL = "0x00000000deadbeef";
@@ -119,7 +121,7 @@ console.log("gasPrice", gasPrice);
 
 const userOperation = {
   sender: senderAddress,
-  nonce: utils.hexlify(0),
+  nonce: utils.hexlify(1),
   initCode,
   callData,
   callGasLimit: utils.hexlify(100_000), // hardcode it for now at a high value
@@ -201,7 +203,7 @@ const chainId = 80001;
 
 const finalUseropHash = hexConcat([
   utils.solidityPack(
-    ["bytes", "bytes", "uint256"],
+    ["bytes", "address", "uint256"],
     [
       utils.arrayify(await entryPoint.getUserOpHash(userOperation)),
       ENTRY_POINT_ADDRESS,
