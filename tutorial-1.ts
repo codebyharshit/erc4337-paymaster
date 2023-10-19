@@ -121,7 +121,7 @@ console.log("gasPrice", gasPrice);
 
 const userOperation = {
   sender: senderAddress,
-  nonce: utils.hexlify(1),
+  nonce: utils.hexlify(0),
   initCode,
   callData,
   callGasLimit: utils.hexlify(100_000), // hardcode it for now at a high value
@@ -218,7 +218,7 @@ console.log("finalUseropHash", finalUseropHash);
 //   utils.arrayify(await entryPoint.getUserOpHash(userOperation))
 // );
 
-const signature = await owner.signMessage(finalUseropHash);
+const signature = await owner.signMessage(utils.arrayify(finalUseropHash));
 
 userOperation.signature = signature;
 
