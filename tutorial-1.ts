@@ -17,11 +17,14 @@ import { ethers } from "ethers";
 dotenv.config();
 
 // GENERATE THE INITCODE
+// const SIMPLE_ACCOUNT_FACTORY_ADDRESS =
+//   "0x9406Cc6185a346906296840746125a0E44976454";
 const SIMPLE_ACCOUNT_FACTORY_ADDRESS =
-  "0x9406Cc6185a346906296840746125a0E44976454";
-const lineaProvider = new StaticJsonRpcProvider(
-  "https://polygon-mumbai.g.alchemy.com/v2/vKN3SWGBGfPXo5afbsJN-wipI1An_cqm"
-);
+  "0xca957331545f588542CCF5216D98ca76b345A1aA";
+// const lineaProvider = new StaticJsonRpcProvider(
+//   "https://polygon-mumbai.g.alchemy.com/v2/vKN3SWGBGfPXo5afbsJN-wipI1An_cqm"
+// );
+const lineaProvider = new StaticJsonRpcProvider("http://localhost:8545");
 // const lineaProvider = new StaticJsonRpcProvider(
 //   "https://eth-goerli.g.alchemy.com/v2/kJd5m9PbweV4f_3J1phY6IghSq7tCeN9"
 // );
@@ -32,10 +35,10 @@ const lineaProvider = new StaticJsonRpcProvider(
 // console.log("Owner", owner);
 
 const privateKey =
-  "2d1f1100effef7adcf2d875fd74e074bfae098cfb45bcf58a5453b78d206afaf";
+  "59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
 const owner = new Wallet(privateKey);
 // const owner = Wallet.createRandom();
-console.log("Generated wallet with private key:", owner.privateKey);
+// console.log("Generated wallet with private key:", owner.privateKey);
 
 const MOCK_VALID_UNTIL = "0x00000000deadbeef";
 const MOCK_VALID_AFTER = "0x0000000000001234";
@@ -54,13 +57,14 @@ const initCode = utils.hexConcat([
 
 console.log("Generated initCode:", initCode);
 
-const alchemyUrl = process.env.ALCHEMY_URL;
-const provider = new ethers.providers.JsonRpcProvider(alchemyUrl);
+// const alchemyUrl = process.env.ALCHEMY_URL;
+const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545");
 
 // CALCULATE THE SENDER ADDRESS
-const ENTRY_POINT_ADDRESS = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
+const ENTRY_POINT_ADDRESS = "0x7Cb70930f88d4A9A5163a6B7F58820A540416c51";
 
-const verifyingPaymaterContract = "0x3DB36D8a420d3fE96bf1F8e84053C39Eee49b830";
+// const verifyingPaymaterContract = "0x3DB36D8a420d3fE96bf1F8e84053C39Eee49b830";
+const verifyingPaymaterContract = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
 const VerifyingAbi = ethers.utils.defaultAbiCoder;
 
 const contract = new ethers.Contract(
@@ -87,7 +91,7 @@ const senderAddress = await entryPoint.callStatic
   .catch((e) => {
     const data = e.message.match(/0x6ca7b806([a-fA-F\d]*)/)?.[1];
     if (!data) {
-      return Promise.reject(new Error("Failed to parse revert data"));
+      return Promise.reject(new Error("Failed to parse revert data" + e));
     }
     const addr = utils.getAddress(`0x${data.slice(24, 64)}`);
     return Promise.resolve(addr);
@@ -121,7 +125,7 @@ console.log("gasPrice", gasPrice);
 
 const userOperation = {
   sender: senderAddress,
-  nonce: utils.hexlify(1),
+  nonce: utils.hexlify(2),
   initCode,
   callData,
   callGasLimit: utils.hexlify(100_000), // hardcode it for now at a high value
@@ -138,7 +142,8 @@ console.log("userOps", userOperation);
 const chain = "mumbai";
 const apiKey = process.env.PIMLICO_API_KEY;
 
-const pimlicoEndpoint = `https://api.pimlico.io/v1/${chain}/rpc?apikey=${apiKey}`;
+// const pimlicoEndpoint = `https://api.pimlico.io/v1/${chain}/rpc?apikey=${apiKey}`;
+const pimlicoEndpoint = `http://localhost:3000/rpc`;
 
 console.log("pimlicoEndpoint", pimlicoEndpoint);
 
@@ -201,24 +206,24 @@ console.log("Pimlico paymasterAndData:", paymasterAndData);
 // SIGN THE USER OPERATION
 const chainId = 80001;
 
-// const finalUseropHash = hexConcat([
-//   utils.solidityPack(
-//     ["bytes", "address", "uint256"],
-//     [
-//       utils.arrayify(await entryPoint.getUserOpHash(userOperation)),
-//       ENTRY_POINT_ADDRESS,
-//       chainId,
-//     ]
-//   ),
-// ]);
-const finalUseropHash = await entryPoint.getUserOpHash(userOperation);
+const finalUseropHash = hexConcat([
+  utils.solidityPack(
+    ["bytes", "address", "uint256"],
+    [
+      utils.arrayify(await entryPoint.getUserOpHash(userOperation)),
+      ENTRY_POINT_ADDRESS,
+      chainId,
+    ]
+  ),
+]);
+// const finalUseropHash = await entryPoint.getUserOpHash(userOperation);
 console.log("finalUseropHash", finalUseropHash);
 
 // const signature = await owner.signMessage(
 //   utils.arrayify(await entryPoint.getUserOpHash(userOperation))
 // );
 
-const signature = await owner.signMessage(finalUseropHash);
+const signature = await owner.signMessage(utils.arrayify(finalUseropHash));
 
 userOperation.signature = signature;
 
