@@ -1,4 +1,4 @@
-export const paymaster = [
+export const paymasterABI = [
   {
     inputs: [
       {
