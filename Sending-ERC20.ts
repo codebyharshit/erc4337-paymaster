@@ -13,6 +13,7 @@ import { paymaster } from "./abi/verifyingPaymaster.js";
 import { entryPointAbi } from "./abi/entryPointContract.js";
 import { hexConcat } from "@ethersproject/bytes";
 import { ethers } from "ethers";
+import { ERC20ABI } from "./abi/erc20Contract.js";
 
 dotenv.config();
 
@@ -101,23 +102,36 @@ let nonce = await provider.getTransactionCount(senderAddress);
 console.log("Nonce returned " + nonce);
 nonce = nonce + 1;
 
-// GENERATE THE CALLDATA
-const to = "0x303e4174cE81eC5d3dE9eE4749F5455a91AB1b25"; // vitalik
-const value = 0;
-const data = "0x68656c6c6f"; // "hello" encoded to utf-8 bytes
+//GENERATE CallData for Sending ERC20 Token
+const ERC20_TOKEN_ADDRESS = "0x12607F63bac6d1BdC636AF4f4d0d97Cf93d02965"; // Replace with the actual ERC20 token address
+const erc20Contract = new ethers.Contract(
+  ERC20_TOKEN_ADDRESS,
+  ERC20ABI,
+  provider
+); // Import the ERC20 contract ABI
 
 const simpleAccount = SimpleAccount__factory.connect(
   senderAddress,
   lineaProvider
 );
 
-const callData = simpleAccount.interface.encodeFunctionData("execute", [
-  to,
-  value,
-  data,
+console.log("erc20Contract", erc20Contract);
+
+// GENERATE THE CALLDATA for sending ERC20 tokens
+const amount = ethers.utils.parseEther("1"); // Replace with the actual amount of tokens you want to send
+console.log("amount", amount);
+const transData = erc20Contract.interface.encodeFunctionData("mint", [
+  "0x2eff40A72329026Ff9cB730D152017249c777D96", // Replace with the recipient's address
+  amount,
 ]);
 
-console.log("Generated callData:", callData);
+const callData = simpleAccount.interface.encodeFunctionData("execute", [
+  erc20Contract.address,
+  0,
+  transData,
+]);
+
+console.log("Generated transfer callData for ERC20 token:", callData);
 
 // FILL OUT REMAINING USER OPERATION VALUES
 const gasPrice = await lineaProvider.getGasPrice();
